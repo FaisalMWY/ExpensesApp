@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_complete_guide/models/transactions.dart';
-import 'package:flutter_complete_guide/widgets/user_transactions.dart';
+import 'package:flutter_complete_guide/widgets/chart.dart';
+import 'package:flutter_complete_guide/widgets/new_transactions.dart';
+import 'package:flutter_complete_guide/widgets/transaction_list.dart';
 
 void main() {
   runApp(MyApp());
@@ -13,71 +15,122 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Expenses Application',
+      debugShowCheckedModeBanner: false,
+      title: 'Expenses App',
       theme: ThemeData(
         // What is the point of primarySwatch?
-        primarySwatch: Colors.lightBlue,
+        primarySwatch: Colors.purple,
+        accentColor: Colors.amber,
+        fontFamily: 'Quicksand',
+        textTheme: ThemeData.light().textTheme.copyWith(
+              headline6: TextStyle(
+                  fontFamily: 'OpenSans',
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold),
+            ),
+        appBarTheme: AppBarTheme(
+          titleTextStyle: TextStyle(
+              fontFamily: 'OpenSans',
+              fontSize: 20,
+              fontWeight: FontWeight.bold),
+        ),
       ),
       home: MyHomePage(),
     );
   }
 }
 
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
   // Here we created a List called transactions consisting of datatype
-  // transaction which is a class created to invoke data from the user
-  final List<transaction> transactions = [
-    transaction(id: '1', title: "food", amount: 69.99, date: DateTime.now()),
-    transaction(id: '2', title: "socks", amount: 19.99, date: DateTime.now())
+  final List<Transaction> _userTransactions = [
+    // transaction(id: '1', title: "food", amount: 69.99, date: DateTime.now()),
+    // transaction(id: '2', title: "socks", amount: 19.99, date: DateTime.now())
   ];
-  final titleController = TextEditingController();
-  final amountController = TextEditingController();
+  List<Transaction> get _recentTransactions {
+    return _userTransactions
+        .where(
+          (element) => element.date.isAfter(
+            DateTime.now().subtract(
+              Duration(days: 7),
+            ),
+          ),
+        )
+        .toList();
+  }
+
+  // this functino creates a new transaction by giving it the transactoin title
+  void _addNewTransaction(String transactionTitle, double transactionAmount) {
+    // since we dont have an id generator for the time being we'll use the
+    // current date and time
+    final newTransaction = Transaction(
+      id: DateTime.now().toString(),
+      title: transactionTitle,
+      amount: transactionAmount,
+      date: DateTime.now(),
+    );
+    // we need setState to rebuild the view in order to view new transactions
+    setState(() {
+      // by using .add() we are adding a new item to the list. yes the varialbe
+      // is final, but that doesn't mean that the value can not be manupilated.
+      _userTransactions.add(newTransaction);
+    });
+  }
+
+  void startAddNewTransaction(BuildContext buildContext) {
+    showModalBottomSheet(
+      context: buildContext,
+      builder: (_) {
+        return GestureDetector(
+          onTap: () {},
+          child: NewTransactions(_addNewTransaction),
+          behavior: HitTestBehavior.opaque,
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Widget Playground!'),
+        title: Text('Personal Expenses'),
+        actions: [
+          IconButton(
+            onPressed: () => startAddNewTransaction(context),
+            icon: Icon(Icons.add),
+          )
+        ],
       ),
       // SingleChildView was created to have a scrollable screen. if it does not
       // exist, when items exceed the height of the screen an error would occur.
       body: SingleChildScrollView(
-        // a scrollDirection must be set or else the screen wont scroll.
         scrollDirection: Axis.vertical,
-        // a column was created to items sorted from top to bottom.
         child: Column(
           children: <Widget>[
             // to create a space between the widget and the appbar
             SizedBox(height: 10),
             //center was created to centralize the widget
-            Center(
-              // container to contain the widget and decorate it since thats
-              child: Container(
-                // one of clipBehavor's uses is to set the shadow underneath
-                // the widget behavior. Clip.none will make sure that the shadow
-                // will not be cut.
-                clipBehavior: Clip.none,
-                // the height of the widget
-                height: 90,
-                // the width of the widget
-                width: 300,
-                // card widget that creates a card
-                child: Card(
-                  // color: sets the color of the card
-                  color: Colors.blue,
-                  // in this case elevation controls the strength of the shadow
-                  elevation: 5,
-                  // container can only have one child in this case its text
-                  // and its centered
-                  child: Center(child: Text('expenses')),
-                ),
-              ),
-            ),
+            Chart(_recentTransactions),
             // instead of having a really long main file filled with many
             // widgets we decided to split them into different widgets and add
             // them together in UserTransaction()
-            UserTransactions(),
+            // _addNewTransaction was passed to newTransactions to recieve the
+            // values of the title and the amount
+            // NewTransactions(_addNewTransaction),
+            // the list being passed to TransactionList to give it the list contents
+            TransactionsList(transactions: _userTransactions),
           ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => startAddNewTransaction(context),
+        child: Icon(
+          Icons.add,
         ),
       ),
     );

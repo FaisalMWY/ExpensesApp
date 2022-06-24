@@ -1,12 +1,10 @@
-import 'package:flutter/material.dart';
-
-class transaction {
+class Transaction {
   final String id;
   final String title;
   final double amount;
   final DateTime date;
 
-  transaction(
+  Transaction(
       {required this.id,
       required this.title,
       required this.amount,

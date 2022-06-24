@@ -1,16 +1,34 @@
 import 'package:flutter/material.dart';
 
-class NewTransactions extends StatelessWidget {
+class NewTransactions extends StatefulWidget {
   // submitTransition is created recieve the function that adds a transaction
   // to the TransactionList
   final Function submitTransaction;
+
+  NewTransactions(this.submitTransaction);
+
+  @override
+  State<NewTransactions> createState() => _NewTransactionsState();
+}
+
+class _NewTransactionsState extends State<NewTransactions> {
   // controllers are made to listen and give... in our case here we have two
-  // listeners the title listener titleController, and the AmountController
   final titleController = TextEditingController();
+
   final amountController = TextEditingController();
 
-  // here is where the function that adds a new transaction is invoked
-  NewTransactions(this.submitTransaction);
+  void addTransaction() {
+    final titleEntered = titleController.text;
+    final amountEntered = double.parse(amountController.text);
+    if (titleEntered.isEmpty || amountEntered <= 0) {
+      return;
+    }
+    widget.submitTransaction(
+      titleController.text,
+      double.parse(amountController.text),
+    );
+    Navigator.of(context).pop;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,23 +49,19 @@ class NewTransactions extends StatelessWidget {
               // the first listener we have here is the titleController which
               // saves the value of the Textfield
               controller: titleController,
+              onSubmitted: (_) => addTransaction(),
             ),
             TextField(
               decoration: InputDecoration(labelText: "Amount"),
               // the second listener we have here is the amountController which
               // saves the value of the Textfield
               controller: amountController,
+              keyboardType: TextInputType.number,
+              onSubmitted: (_) => addTransaction(),
             ),
             FlatButton(
               // onPressed determines what happens when the button is
-              onPressed: () {
-                // this button is responsible of adding the new transactino to
-                // the screen.
-                submitTransaction(
-                  titleController.text,
-                  double.parse(amountController.text),
-                );
-              },
+              onPressed: addTransaction,
               child: Text("Add Transactoin"),
             ),
           ],
