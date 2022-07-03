@@ -23,11 +23,11 @@ class MyApp extends StatelessWidget {
         accentColor: Colors.amber,
         fontFamily: 'Quicksand',
         textTheme: ThemeData.light().textTheme.copyWith(
-              headline6: TextStyle(
-                  fontFamily: 'OpenSans',
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold),
-            ),
+            headline6: TextStyle(
+                fontFamily: 'OpenSans',
+                fontSize: 18,
+                fontWeight: FontWeight.bold),
+            button: TextStyle(color: Colors.white)),
         appBarTheme: AppBarTheme(
           titleTextStyle: TextStyle(
               fontFamily: 'OpenSans',
@@ -47,10 +47,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   // Here we created a List called transactions consisting of datatype
-  final List<Transaction> _userTransactions = [
-    // transaction(id: '1', title: "food", amount: 69.99, date: DateTime.now()),
-    // transaction(id: '2', title: "socks", amount: 19.99, date: DateTime.now())
-  ];
+  final List<Transaction> _userTransactions = [];
   List<Transaction> get _recentTransactions {
     return _userTransactions
         .where(
@@ -64,14 +61,15 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   // this functino creates a new transaction by giving it the transactoin title
-  void _addNewTransaction(String transactionTitle, double transactionAmount) {
+  void _addNewTransaction(
+      String transactionTitle, double transactionAmount, DateTime chosenDate) {
     // since we dont have an id generator for the time being we'll use the
     // current date and time
     final newTransaction = Transaction(
       id: DateTime.now().toString(),
       title: transactionTitle,
       amount: transactionAmount,
-      date: DateTime.now(),
+      date: chosenDate,
     );
     // we need setState to rebuild the view in order to view new transactions
     setState(() {
@@ -92,6 +90,12 @@ class _MyHomePageState extends State<MyHomePage> {
         );
       },
     );
+  }
+
+  void _deleteTransaction(String id) {
+    setState(() {
+      _userTransactions.removeWhere((element) => element.id == id);
+    });
   }
 
   @override
@@ -123,7 +127,9 @@ class _MyHomePageState extends State<MyHomePage> {
             // values of the title and the amount
             // NewTransactions(_addNewTransaction),
             // the list being passed to TransactionList to give it the list contents
-            TransactionsList(transactions: _userTransactions),
+            TransactionsList(
+                transactions: _userTransactions,
+                deleteElement: _deleteTransaction),
           ],
         ),
       ),

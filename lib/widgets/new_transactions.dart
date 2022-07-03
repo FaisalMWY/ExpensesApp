@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class NewTransactions extends StatefulWidget {
   // submitTransition is created recieve the function that adds a transaction
@@ -13,21 +14,35 @@ class NewTransactions extends StatefulWidget {
 
 class _NewTransactionsState extends State<NewTransactions> {
   // controllers are made to listen and give... in our case here we have two
-  final titleController = TextEditingController();
+  final _titleController = TextEditingController();
+  final _amountController = TextEditingController();
+  DateTime _selectedDate = DateTime.now();
 
-  final amountController = TextEditingController();
-
-  void addTransaction() {
-    final titleEntered = titleController.text;
-    final amountEntered = double.parse(amountController.text);
+  void _addTransaction() {
+    final titleEntered = _titleController.text;
+    final amountEntered = double.parse(_amountController.text);
     if (titleEntered.isEmpty || amountEntered <= 0) {
       return;
     }
-    widget.submitTransaction(
-      titleController.text,
-      double.parse(amountController.text),
-    );
+    widget.submitTransaction(_titleController.text,
+        double.parse(_amountController.text), _selectedDate);
     Navigator.of(context).pop;
+  }
+
+  void _datepicker() {
+    showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    ).then((pickedDate) {
+      if (pickedDate == null) {
+        return;
+      }
+      setState(() {
+        _selectedDate = pickedDate;
+      });
+    });
   }
 
   @override
@@ -46,22 +61,40 @@ class _NewTransactionsState extends State<NewTransactions> {
               // while we only see labelText but the input decoration
               // class contains way more decoration attributes.
               decoration: InputDecoration(labelText: "Title"),
-              // the first listener we have here is the titleController which
+              // the first listener we have here is the _titleController which
               // saves the value of the Textfield
-              controller: titleController,
-              onSubmitted: (_) => addTransaction(),
+              controller: _titleController,
+              onSubmitted: (_) => _addTransaction(),
             ),
             TextField(
               decoration: InputDecoration(labelText: "Amount"),
-              // the second listener we have here is the amountController which
+              // the second listener we have here is the _amountController which
               // saves the value of the Textfield
-              controller: amountController,
+              controller: _amountController,
               keyboardType: TextInputType.number,
-              onSubmitted: (_) => addTransaction(),
+              onSubmitted: (_) => _addTransaction(),
             ),
-            FlatButton(
-              // onPressed determines what happens when the button is
-              onPressed: addTransaction,
+            SizedBox(
+              height: 70,
+              child: Row(
+                children: <Widget>[
+                  Text('Pick a date: '),
+                  FlatButton(
+                      textColor: Theme.of(context).primaryColor,
+                      onPressed: _datepicker,
+                      child: Text(
+                        _selectedDate == null
+                            ? 'Here!'
+                            : DateFormat.yMd().format(_selectedDate),
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ))
+                ],
+              ),
+            ),
+            RaisedButton(
+              color: Theme.of(context).primaryColor,
+              textColor: Colors.white,
+              onPressed: _addTransaction,
               child: Text("Add Transactoin"),
             ),
           ],
