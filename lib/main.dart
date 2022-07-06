@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_complete_guide/models/transactions.dart';
 import 'package:flutter_complete_guide/widgets/chart.dart';
@@ -5,6 +8,11 @@ import 'package:flutter_complete_guide/widgets/new_transactions.dart';
 import 'package:flutter_complete_guide/widgets/transaction_list.dart';
 
 void main() {
+  // WidgetsFlutterBinding.ensureInitialized();
+  // SystemChrome.setPreferredOrientations([
+  //   DeviceOrientation.portraitUp,
+  //   DeviceOrientation.portraitDown,
+  // ]);
   runApp(MyApp());
 }
 
@@ -47,6 +55,8 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   // Here we created a List called transactions consisting of datatype
+
+  bool _showChart = false;
   final List<Transaction> _userTransactions = [];
   List<Transaction> get _recentTransactions {
     return _userTransactions
@@ -100,45 +110,95 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Personal Expenses'),
-        actions: [
-          IconButton(
-            onPressed: () => startAddNewTransaction(context),
-            icon: Icon(Icons.add),
-          )
-        ],
-      ),
-      // SingleChildView was created to have a scrollable screen. if it does not
-      // exist, when items exceed the height of the screen an error would occur.
-      body: SingleChildScrollView(
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    final PreferredSizeWidget appBar = Platform.isIOS
+        ? CupertinoNavigationBar(
+            middle: Text("personal Expenses"),
+            trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+              CupertinoButton(
+                child: Icon(CupertinoIcons.add),
+                onPressed: () => startAddNewTransaction(context),
+              ),
+            ]),
+          ) as ObstructingPreferredSizeWidget
+        : AppBar(
+            title: Text('Personal Expenses'),
+            actions: [
+              IconButton(
+                onPressed: () => startAddNewTransaction(context),
+                icon: Icon(Icons.add),
+              )
+            ],
+          );
+    final mainPage = SafeArea(
+      child: SingleChildScrollView(
         scrollDirection: Axis.vertical,
         child: Column(
           children: <Widget>[
-            // to create a space between the widget and the appbar
-            SizedBox(height: 10),
-            //center was created to centralize the widget
-            Chart(_recentTransactions),
-            // instead of having a really long main file filled with many
-            // widgets we decided to split them into different widgets and add
-            // them together in UserTransaction()
-            // _addNewTransaction was passed to newTransactions to recieve the
-            // values of the title and the amount
-            // NewTransactions(_addNewTransaction),
-            // the list being passed to TransactionList to give it the list contents
-            TransactionsList(
-                transactions: _userTransactions,
-                deleteElement: _deleteTransaction),
+            if (isLandscape)
+              Center(
+                child: Switch.adaptive(
+                    value: _showChart,
+                    onChanged: (val) {
+                      setState(() {
+                        _showChart = val;
+                      });
+                    }),
+              ),
+            if (!isLandscape)
+              SizedBox(
+                  height: (MediaQuery.of(context).size.height -
+                          appBar.preferredSize.height -
+                          MediaQuery.of(context).padding.top) *
+                      0.25,
+                  child: Chart(_recentTransactions)),
+            if (!isLandscape)
+              SizedBox(
+                height: (MediaQuery.of(context).size.height -
+                        appBar.preferredSize.height -
+                        MediaQuery.of(context).padding.top) *
+                    0.75,
+                child: TransactionsList(
+                    transactions: _userTransactions,
+                    deleteElement: _deleteTransaction),
+              ),
+            _showChart
+                ? SizedBox(
+                    height: (MediaQuery.of(context).size.height -
+                            appBar.preferredSize.height -
+                            MediaQuery.of(context).padding.top) *
+                        0.7,
+                    child: Chart(_recentTransactions))
+                : SizedBox(
+                    height: (MediaQuery.of(context).size.height -
+                            appBar.preferredSize.height -
+                            MediaQuery.of(context).padding.top) *
+                        0.77,
+                    child: TransactionsList(
+                        transactions: _userTransactions,
+                        deleteElement: _deleteTransaction),
+                  ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => startAddNewTransaction(context),
-        child: Icon(
-          Icons.add,
-        ),
-      ),
     );
+    return Platform.isIOS
+        ? CupertinoPageScaffold(
+            child: mainPage,
+            navigationBar: (appBar as ObstructingPreferredSizeWidget),
+          )
+        : Scaffold(
+            appBar: appBar,
+            body: mainPage,
+            floatingActionButton: Platform.isIOS
+                ? Container()
+                : FloatingActionButton(
+                    onPressed: () => startAddNewTransaction(context),
+                    child: Icon(
+                      Icons.add,
+                    ),
+                  ),
+          );
   }
 }
