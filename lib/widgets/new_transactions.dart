@@ -31,18 +31,25 @@ class _NewTransactionsState extends State<NewTransactions> {
     Navigator.of(context).pop;
   }
 
-  void _datepicker() {
+  // _datePicker uses showDatePicker to show the date picker widget.
+  // but first we need four arguments first we need the context of the widget
+  // tree, second we need the initialDate which is now, then we have first date
+  // which is the first date we can choose, in our case its the year 2000
+  // finally we have our lastDate which is the last date we can pick
+  // in our case its now, since we cannot predict the future for the time being ^^
+  void _datePicker() {
     showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime.now(),
     ).then((pickedDate) {
-      if (pickedDate == null) {
-        return;
-      }
+      //.then is used to do an action depending on the
+      // outcome of an input of another action
       setState(() {
-        _selectedDate = pickedDate;
+        //here we used set state to change the value of the text to
+        // the new date
+        _selectedDate = pickedDate!;
       });
     });
   }
@@ -56,6 +63,8 @@ class _NewTransactionsState extends State<NewTransactions> {
         child: Padding(
           padding: EdgeInsets.only(
               top: 10,
+              // viewInsets finds the overlapping widget (If any if not it'll
+              // return 0) and adds 10 to it to avoid having an unseeable screen
               bottom: MediaQuery.of(context).viewInsets.bottom + 10,
               left: 10,
               right: 10),
@@ -83,12 +92,16 @@ class _NewTransactionsState extends State<NewTransactions> {
               ),
               SizedBox(
                 height: 70,
+                // this row containst the widgets needed for the date picker used in here.
                 child: Row(
                   children: <Widget>[
+                    // First we have the text that asks to pick a date
                     Text('Pick a date: '),
+                    // then we have the button that presents the date picker
+                    // for us
                     FlatButton(
                         textColor: Theme.of(context).primaryColor,
-                        onPressed: _datepicker,
+                        onPressed: _datePicker,
                         child: Text(
                           _selectedDate == null
                               ? 'Here!'

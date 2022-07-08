@@ -8,7 +8,7 @@ import 'package:flutter_complete_guide/widgets/new_transactions.dart';
 import 'package:flutter_complete_guide/widgets/transaction_list.dart';
 
 void main() {
-  // WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
   // SystemChrome.setPreferredOrientations([
   //   DeviceOrientation.portraitUp,
   //   DeviceOrientation.portraitDown,
@@ -58,15 +58,18 @@ class _MyHomePageState extends State<MyHomePage> {
 
   bool _showChart = false;
   final List<Transaction> _userTransactions = [];
+  //This list gets transactions that occured in the last seven days.
   List<Transaction> get _recentTransactions {
+    // .where is the condition of which the data gets invoked.
     return _userTransactions
         .where(
+          // as we see here, our condition is all days after dateTime.now - 7days
           (element) => element.date.isAfter(
             DateTime.now().subtract(
               Duration(days: 7),
             ),
           ),
-        )
+        ) //its important to not forget to add tolist in the end, or it wont work.
         .toList();
   }
 
@@ -110,6 +113,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // this value was created to make sure that the orientation is on landscape
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
     final PreferredSizeWidget appBar = Platform.isIOS
@@ -138,21 +142,37 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             if (isLandscape)
               Center(
+                //switch() is a normal switch widget.
                 child: Switch.adaptive(
+                    // _showchart is our boolean value which is false by default
                     value: _showChart,
+                    // since the switch's value affect's the way screen is
+                    // viewed, we've put it in set state, and assigned the value
+                    // of the new change into _showChart for later use
                     onChanged: (val) {
                       setState(() {
+                        // as stated earlier we want to assigne the change of
+                        // the switch to the already created _showChart
                         _showChart = val;
                       });
                     }),
               ),
             if (!isLandscape)
               SizedBox(
+                  // in order for us to get the absulote size of the main screen
+                  // we need to subtract the height of the appbar and the phone's
+                  // notification/top bar. and as we see here we've subtracted it
+                  // already and we multipied it by.25 because we want to give this
+                  // widget 25% of the screen.
                   height: (MediaQuery.of(context).size.height -
                           appBar.preferredSize.height -
                           MediaQuery.of(context).padding.top) *
                       0.25,
+                  // here we gave the class chart the transactions of the
+                  // last 7 days
                   child: Chart(_recentTransactions)),
+            // if the screen is not in landscape then the following block of
+            // code will be excuted
             if (!isLandscape)
               SizedBox(
                 height: (MediaQuery.of(context).size.height -
